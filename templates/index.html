@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stock Predictor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .form-group { margin: 20px 0; }
+        #chart-container { margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Price Predictor</h1>
+        
+        <form id="predictionForm">
+            <div class="form-group">
+                <input type="text" name="ticker" placeholder="Enter stock ticker (e.g., AAPL)" required>
+            </div>
+            
+            <div class="form-group">
+                <select name="model_type">
+                    <option value="lstm">LSTM Model</option>
+                    <option value="random_forest">Random Forest</option>
+                </select>
+            </div>
+            
+            <button type="submit">Predict</button>
+        </form>
+
+        <div id="chart-container">
+            <canvas id="stockChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('stockChart').getContext('2d');
+        let chart = null;
+
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const response = await fetch('/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if(chart) chart.destroy();
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.dates,
+                    datasets: [{
+                        label: 'Actual Price',
+                        data: data.actual,
+                        borderColor: 'rgb(75, 192, 192)'
+                    },
+                    {
+                        label: 'Predicted Price',
+                        data: data.predictions,
+                        borderColor: 'rgb(255, 99, 132)'
+                    }]
+                }
+            });
+        });
+    </script>
+</body>
+</html>
